@@ -1,0 +1,94 @@
+pag 166 
+
+c  code:
+
+int a, b;
+char c1;
+int c, d;
+register int x, y, z;
+
+x = 17;
+y = -5;
+
+for (z = 1; z < x + y; z++)
+    for (a = z; a >= z * y; a -= 10)
+	 {
+	  d = a + z; 
+	  c1 = d * b; 
+	  c = a + y / z;
+	 }
+	 
+
+	 
+define(local_var, `define(last_sym, 0)')
+
+define(var `define(`last_sym',
+            eval((last_sym - ifelse($3,,$2,$3)) & -$2)) $1 = last_sym')
+			
+define(save, `%sp, eval(
+                    ( -92 ifdef(`last_sym',`last_sym')) & -8), %sp)
+
+define(`begin_main', `.global    main
+            .align    4
+			main: 
+			    save')
+				
+define(end_main, `mov 1, %g1
+        ta 0')
+
+local_var
+var(a_s, 4)
+var(b_s, 4)
+var(c, 4)
+var(d, 4)
+var(c1, 1)
+
+define(x_r, l0)
+define(y_r, l1)
+define(z_r, l2)
+                                              
+    begin_main
+    mov     17, %x_r
+    mov     -5, %y_r
+    b outtertest
+    mov     1, %z_r
+outside:	
+	mov     %z_r, %l6
+	mov     %z_r, %o1
+	b intest
+	st      %z_r, [%fp + a_s]
+inside:
+	add     %l6, %z_r, %l5 			!a + z 
+	call .mul						! d * b
+	ld      [%fp + d_s], %o1
+	st      %l5, [%fp + d_s]
+	st      %o0, [%fp + c1_s]
+	mov     %z_r, %o1
+	call .div						!a is still in %l6
+	add     %l6, %y_r, %o0
+	st      %o0, [%fp + c_s]
+ininc:    
+	sub     %l6, 10, %l6
+	st      %l6, [%fp + a_s]
+intest:    
+	call .mul                      
+	mov     %y_r, %o0
+    cmp     %l6, %o0
+	bge, a  inside			  		!if a >= z * y branch to inside loop
+    ld      [%fp + b_s], %o0		!delay slot - loads b into %o0 for c1 = d * b step
+outterinc:
+    add     %z_r, 1, %z_r
+outtertest:
+    add     %x_r, %y_r, %l7
+	cmp     %z_r, %l7
+	bl, a   outside
+	mov     %z_r, %o1				!delay slot - loads %z_r into %o1 for a >= z * y test
+	end_main
+
+
+
+
+
+
+
+

@@ -1,0 +1,30 @@
+Parker Brown
+300255263
+COSC 211 - Architecture
+
+Exercise 7-9
+Page 227
+
+
+
+main:
+
+    call .refact
+    mov %var_r, %o0
+	end_main
+
+
+
+refact:
+    save %sp, -96, %sp
+	cmp %i0, 1
+	ble, a endpoint
+	mov 1, %o0
+	call .refact
+	sub %i0, 1, %o0
+endpoint:
+    call .mul
+	mov %i0, %o1
+	mov %o0, %i0
+	restore
+	ret

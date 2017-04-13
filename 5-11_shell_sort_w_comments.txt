@@ -1,0 +1,127 @@
+Parker Brown
+300255263
+April 11, 2017
+COSC 211
+
+Exercise 5-11 on page 180 from SPARC Architecture, Assembly
+                              Language Programming, and C
+							  
+You are to translate the following shell sort program into assebly language
+eliminating all nop instructions.  Shell sort for an array of SIZE integers.
+The array is initialized to the sequence SIZE, -1, ..., 1, 0 and after the
+sort is 0, 1, ...., SIZE -1.
+
+In C:
+
+#define SIZE 20
+main()
+{
+    int v[SIZE];
+    register int gap, i, j;
+    register int temp;	
+	
+	for (j = 0, i = SIZE; --i >= 0;)  /*initialize array*/
+	    v[i] = j++;
+		
+	for (gap = SIZE / 2; gap > 0; gap /= 2) 
+	    for (i = gap; i < SIZE; i++)
+		    for (j = i - gap; j >= 0 && v[j] > v[j + gap]; j -= gap) {
+			    temp = v[j];
+				v[j] = v[j + gap];
+				v[j + gap] = temp;
+			}
+}
+
+==================================================================================
+
+define(local_var, `define(last_sym, 0)')
+
+define(var `define(`last_sym',
+            eval((last_sym - ifelse($3,,$2,$3)) & -$2)) $1 = last_sym')
+			
+define(save, `%sp, eval(
+                    ( -92 ifdef(`last_sym',`last_sym')) & -8), %sp)
+
+define(`begin_main', `.global    main
+            .align    4
+			main: 
+			    save')
+				
+define(end_main, `mov 1, %g1
+        ta 0')
+
+define(initarray, `ifelse ($2 -1, $3,,
+            mov $4, %o0
+            st %o0, [%fp + $1 + eval($4 *4)]
+            `initarray($1, eval($2 - 1), $3, eval($4+1))')')
+			
+define(size_r, g2)
+define(v_r, l0)
+define(gap_r, l1)
+define(i_r, l2)
+define(j_r, l3)
+define(temp_r, l4)
+define(lag_r, l5)
+define(size, 20)
+                                               
+assemblyrun:
+											   
+    mov     size, %size_r					!move global variable size into the size register
+    begin_main								!main
+	var(v_s, 4, 4*20)						!set the stack space in memory for v to 80 bytes
+	initarray(v_s, size, 0, 0)				!initialize v in the stack with values 0($4) to size -1($2 - 1)
+	mov     2, %o1							!with [%fp + v_s($1)] as the base address
+	call .div								!divide 20 / 2
+	mov     %size_r, %o0					!delay slot for call .div
+	b outtertest							!branch to outter test
+	mov     %o0, %gap_r						!delay slot initialize outterloop gap_r gets size / 2	
+outside:									!
+    b midtest								!go directly to next inside level test (no code to execute)
+	mov     %gap_r, %i_r					!delay slot - initialize mid loop i_r gets gap_r	 							
+middle:										!accessible from outside run or midtest cond branch
+    b intest								!go directly to next inside level test (no code to execute)
+	sub     %i_r, %gap_r, %j_r				!delay slot initialize inner loop j_r gets i_r minus gap_r
+inside:										!exclusively accessible from intest - primary sort procedure    					
+	call .mul								!multiply j_r with 4
+	mov     4, %o1							!
+	ld      [%fp + v_s + %o0], %temp_r		!load j as index for array v to temp_r ... temp = v[j];
+	mov     %o0, %lag_r						!move the memory index (j_r times 4) to lag_r
+	call .mul								!multiply (j_r + gap_r) by 4
+	add     %j_r, %gap_r, %o0				!
+	ld      [%fp + v_s + %o0], %l6			!load j+gap as index for array v to %l6 ... %l6 = v[j+gap]
+	st      %l6, [%fp + v_s + %lag_r]		!store v[j + gap] in v[j]
+	st      %temp_r, [%fp + v_s + %o0]		!store temp_r in v[j + gap]
+insinc:										!
+    sub     %j_r, %gap_r, %j_r				!inside increment j -= gap
+intest:										!accessible from inside run or middle branch
+    call .mul								!multiply j_r by 4
+    mov     %j_r, %o0						!
+    cmp     %j_r, 0							!
+	bl midinc    							!j >= 0 failed so branch to midinc
+	nop             						!delay slot cannot be reliable filled
+	mov     %o0, %lag_r						!move index of j in v_s memory to lag_r
+	call .mul								!
+	add     %j_r, %gap_r, %o0				!multiply (gap_r + j_r) by four 
+	ld      [%fp + v_s + %lag_r], %l6		!load v[j] into %l6
+	ld      [%fp + v_s + %o0], %l7			!load v[j + gap] into %l7
+	cmp     %l6, %l7						!
+	bg, a inside							!v[j] > v[j + gap] is true so branch to inside run (annul)
+	mov     %j_r, %o0						!delay slot as first instruction from inside
+midinc:										!if we got here then the inside loop conditional is met		
+    add %i_r, 1, %i_r						!increment i by 1
+midtest:									!
+    cmp %i_r, %size_r						!
+	bl, a middle							!i < SIZE is true so branch to middle (annul)
+    nop										!delay slot cannot be reliable filled
+outterinc:									!middle for loop broken so increment outter loop
+    mov     2, %o1							!
+	call .div								!increment my setting gap to gap / 2
+	mov     %gap_r, %o0						!
+	mov     %o0, %gap_r						!
+outtertest:									!
+    cmp     %gap_r, 0						!							
+	bg, a outside							!gap > 0 is true so branch to outside, annul
+	nop										!delay slot cannot be reliably filled
+	end_main								!
+=====================================================================
+                                                         	

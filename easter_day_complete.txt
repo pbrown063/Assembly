@@ -1,0 +1,164 @@
+//this is the original C code for the easter of a given year problem.
+//it is intended to be translated to assembly language using m4
+
+#include <iostream>
+#include <stdio.h>
+#include <fstream>
+#include <string>
+using namespace std;
+
+main()
+{
+  int g;
+  int c;
+  int x;
+  int z;
+  int d;
+  int e;
+  int n;
+  int y;
+  int m;
+  string easter_month;
+
+
+  cout << "\nWhat year do you want to know about easter?" << "\n";
+  cin >> y;
+  
+  g = (y % 19) + 1;
+  c = (y / 100) + 1;
+  x = (3 * c / 4) - 12;
+  z = (((8 * c) + 5) / 25) -5;
+  d = (5 * y / 4) - x - 10;
+
+  
+  e = ((11 * g) + 20 + z - x) % 30;
+  if ((e == 25 && g > 11) || (e == 24))
+    e++;
+
+  n = 44 - e;
+  if (n < 21)
+    n = n + 30;
+
+  n = n + 7 - ((d + n) % 7);
+
+  if (n > 31)    {
+      m = 4;
+      n = n - 31;
+  }
+  else
+    m = 3;
+
+  if (m == 3)
+    easter_month = "March";
+  else
+    easter_month = "April";  
+
+
+
+  cout << "\nGolden number, g: " << g;
+  cout << "\nCentury, c: " << c;
+  cout << "\nDropped Leap Year Correction, x: " << x;
+  cout << "\nMoon Orbit Correction, z: " << z;
+  cout << "\nSunday, d: " << d;
+  cout << "\nEpact Full Moon Day, e: " << e;
+  cout << "\nDay Of The Month, n: " << n;
+  cout << "\nYear, y: " << y;
+  cout << "\nMonth, m: " << m;
+  cout << "\nMonth Name, easter_month: " << easter_month;
+  cout << "\nEaster is on day " << n << " of " << easter_month;
+  cout << " in the year: " << y;
+  cout << "\n";
+}
+
+  
+
+
+
+
+
+THIS IS THE FINAL TRANSLATION FROM THE 'FIND EASTER OF A GIVEN YEAR'
+PROBLEM ON PAGE 93 PROBLEM 2-11 OF RICHARD PAUL'S SPARC ARCHITECTURE,
+ASSEMBLY LANGUAGE PROGAMMING, AND C SECOND EDITION.
+
+
+
+.global main
+  main:
+save %sp, -96, %sp
+or %g0, 2013, %l0
+or %g0, %l0, %o0
+call .rem
+or %g0, 19, %o1
+add %o0, 1, %l1
+or %g0, %l0, %o0
+call .div
+or, %g0 100, %o1
+add %o0, 1, %i4
+or %g0, %i4, %o0
+call .mul
+or %g0, 3, %o1
+call .div
+or %g0, 4, %o1
+sub %o0, 12, %l2
+or %g0, %i4, %o0
+call .mul 
+or %g0, 8, %o1
+add %o0, 5, %o0
+call .div
+or %g0, 25, %o1
+sub %o0, 5, %l3
+or %g0, %l0, %o0
+call .mul
+or %g0, 5, %o1
+call .div 
+or %g0, 4, %o0
+sub %o0, %l2, %o0
+sub %o0, 10, %l4
+or %go, %l1, %o0
+call .mul
+or %g0, 11, %o1
+add %o0, 20, %o0
+add %o0, %l3, %o0
+sub %o0, %l2, %o0
+call .rem
+or %g0, 30, %o1
+or %g0, %o0, %l5
+=================================branches ahead==================
+
+andcc %g0, %g0, %g0
+cmp %l5, 24
+bne maintaine
+sub 44, %l5, %l6
+andcc %g0, %g0, %g0
+cmp %l5, 25
+bne maintaine
+sub 44, %l5, %l6
+andcc %g0, %g0, %g0
+cmp %l1, 11
+ble maintaine
+sub 44, %l5, %l6
+add %l5, 1, %l5
+                  maintainee:               
+andcc %g0, %g0, %g0
+cmp %l6, 21
+bge adjustn
+nop
+add %l6, 30, %l6
+                  adjusten:
+add %l4, %l6, %o0
+call .rem
+or %g0, 7, %o1
+or %g0, %o0, %i5
+add %l6, 7, %l6
+sub %l6, %i5, %i6
+andcc %g0, %g0, %g0
+cmp %l6, 31
+ble setemtothree
+or %g0, 3, %l7
+or %g0, 4, %l7
+ba emisapril
+sub %l6, 31, %l6
+                   emformarch:
+                   emisapril:
+
+ta 0

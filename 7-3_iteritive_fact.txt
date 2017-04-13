@@ -1,0 +1,34 @@
+Parker Brown
+300255263
+COSC 211 - Architecture
+
+Exercise 7-3
+Page 226
+
+
+main:
+
+    call .itfact
+    mov %var_r, %o0
+
+    end_main
+
+
+itfact:
+    save %sp, -96, %sp
+    mov 0, %o0
+    ba fortest
+    mov 0, %l1
+forloop:
+    call .mul
+	mov %l1, %o1
+	cmp %o0, 0
+	bne, a fortest
+	add %o0, 1, %o0
+fortest:
+    cmp %i0, %l1
+	bg forloop
+	add %l1, 1, %l1
+	mov %o0, %i0
+	restore
+	return
